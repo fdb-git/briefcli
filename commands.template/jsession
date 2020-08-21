@@ -1,0 +1,7 @@
+function usage {
+    echo 'Retrieve the JSESSIONID from a J2EE Web application and store it in the cookies file using curl'
+}
+
+function call {
+    ${CONF[curl]} --junk-session-cookies "${CONF[endpoint]}/" | ${CONF[w3m]}
+}

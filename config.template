@@ -1,0 +1,43 @@
+# All key=value pairs in this file can be used in command
+# files using bash's associative array syntax: ${CONF[key]}
+
+# To define a parameter using env vars prepend this string to the param name
+# eg: BCB_param='value' BCB_param2='value2' briefcli print-conf
+ENVPREFIX='BC_'
+
+# A single/multi line string printed as usage text.
+USAGE="\
+Brief (Bash) CLI builder\n\
+\n\
+usage:\n\
+$_NAME COMMAND [param[=value]]\n\
+\n\
+Parameters can be inserted in:\n\
+ - config file\n\
+ - environment variables (removing the initial "BCB_"):\n\
+      BCB_param='value' BCB_param2='value2' $_NAME print-conf\n\
+ - command line parameters:\n\
+      $_NAME param='value' param2='value2'\n\
+ - standard input:\n\
+      echo -e 'param=value\\\nparam2=value2' | $_NAME print-conf"
+
+# The user used in the login command
+user='admin'
+
+# The worst choice is to set a password in this file!
+password='1234'
+
+# The endpoint through which it is possible to reach a service
+# We are not related to ifconfig.io, it's is only a simple
+# API useful as example.
+endpoint='ifconfig.io'
+
+# Example command usable in call() function to
+# get data from web apps needing cookies.
+curl="curl --silent --insecure \
+        --cookie $WORKDIR/cookies.txt \
+        --cookie-jar $WORKDIR/cookies.txt"
+
+# Example command usable in call() function to
+# render html page to text console.
+w3m='w3m -dump -T text/html'

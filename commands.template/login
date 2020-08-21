@@ -1,0 +1,12 @@
+function usage {
+    echo 'Example login form authentication using curl'
+}
+
+function call {
+    ${CONF[curl]} -X POST \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data "username=${CONF[user]}" \
+        --data "password=${CONF[password]}" \
+        --data 'submit=Login' \
+        "${CONF[endpoint]}/login" | ${CONF[w3m]}
+}

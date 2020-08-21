@@ -1,0 +1,11 @@
+function usage {
+    cat << EOF
+Get the Star Wars news using curl
+We are not related to starwars.com, it's only a simple example.
+EOF
+}
+
+function call {
+    ${CONF[curl]} https://www.starwars.com/feed/ | xmllint --xpath '//channel/item/title' - | sed -e 's/<title>/- /g' -e 's/<\/title>/\n/g'
+}
+

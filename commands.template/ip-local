@@ -1,0 +1,7 @@
+function usage {
+    echo 'Print your private ip address.'
+}
+
+function call {
+    hostname -i
+}

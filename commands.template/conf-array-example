@@ -1,0 +1,21 @@
+# This is an example of how to use CONF array parameters
+# Parameters can be defined as key=value pairs through:
+# - config file
+# - environment variables (removing the initial string defaulting to "BCB_")
+# - command line parameters
+# - standard input
+# For more info see README.md
+
+function usage {
+    cat << EOF
+Show how to use the CONF array
+
+usage: $_NAME conf-array-example [word=string]
+EOF
+}
+
+function call {
+    # If ${CONF[word]} is defined use it else defaults to 'world!' word
+    [ -n "${CONF[word]}" ] && word=${CONF[word]} || word='world!'
+    echo Hello $word
+}

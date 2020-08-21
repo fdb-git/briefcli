@@ -1,0 +1,9 @@
+# This is an example of how to reuse a briefcli command inside a briefcli command
+
+function usage {
+    echo 'Use the output of a briefcli command as parameter of another command'
+}
+
+function call {
+    host $($BRIEFCLI ip-public)
+}

@@ -1,0 +1,22 @@
+# This is an example of how to implement subcommands.
+
+function usage {
+    cat << EOF
+Use ifconfig.io to retrieve ip info
+
+usage: $_NAME COMMAND
+
+COMMAND can be:
+ip              your public ip
+host            your public DNS name
+port            your connection port
+all.json        all data in json
+
+We are not related to ifconfig.io, it have a simple
+API useful as example.
+EOF
+}
+
+function call {
+    [ $# -gt 0 ] && ${CONF[curl]} "${CONF[endpoint]}/$1" || usage
+}

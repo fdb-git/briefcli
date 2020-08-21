@@ -1,0 +1,9 @@
+function usage {
+    echo 'This function return a string with usage text'
+}
+
+function call {
+    # This function is executed after storing all parameters in CONF array
+    ${CONF[curl]} "${CONF[endpoint]}/" | ${CONF[w3m]}
+}
+

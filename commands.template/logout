@@ -1,0 +1,9 @@
+function usage {
+    echo 'Example logout using curl'
+}
+
+function call {
+    ${CONF[curl]} \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        "${CONF[endpoint]}/logout" | ${CONF[w3m]}
+}

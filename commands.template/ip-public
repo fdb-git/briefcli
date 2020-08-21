@@ -1,0 +1,7 @@
+function usage {
+    echo 'Print your public ip address.'
+}
+
+function call {
+    ${CONF[curl]} "ifconfig.io" # We are not relatet to ifconfig.io, it's only a simple example.
+}
