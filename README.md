@@ -23,7 +23,7 @@ function call {
 
 - Parameters can be defined as _key=value_ pairs through:
   - config file
-  - environment variables (removing the initial string defaulting to "BCB_") 
+  - environment variables (removing the initial string defaulting to "BC_") 
   - command line parameters
   - standard input
 
@@ -66,7 +66,7 @@ The parameters are read in the following order, in case of homonymy the next one
 
 As an example, a parameter _password_ defined in the _config_ file is not an excellent choice, so it's better to pass it as an environment variable:
 
-    BCD_user='john' BCB_password='123456' ./briefcli print-conf
+    BC_user='john' BC_password='123456' ./briefcli print-conf
 
 We can use command line parameters, but for a password also this is not a good choice because the command line is visible in process list:
  
@@ -78,7 +78,7 @@ The last and more secure for pass secret parameters is via stdin (pay attention 
 
 Finally we can use mixed sources:
 
-echo 'user1=from_stdin' | BCB_user2='from_env' ./briefcli print-conf user3='from_parameter'
+    echo 'user1=from_stdin' | BC_user2='from_env' ./briefcli print-conf user3='from_parameter'
 
 ## Create a command files
 
@@ -105,7 +105,7 @@ function help {
 # Deploy 
 Create the link with your CLI name:
 
-    ln -s $INSTALL_DIR/bash-cli-builder/bcb /usr/local/bin/mycli
+    ln -s $INSTALL_DIR/briefcli/briefcli /usr/local/bin/mycli
 
 Now if the directory in which the link is contained is included in the path then you can run:
 
