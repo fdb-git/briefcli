@@ -1,3 +1,5 @@
+![BriefCLI logo](../assets/logo/briefcli.png?raw=true)
+
 # Brief (Bash) CLI builder
 
 __```briefcli```__ is a minimal framework to build your command line interfaces for whatever you want.
