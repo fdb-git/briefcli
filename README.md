@@ -45,7 +45,7 @@ function call {
 ```bash
 INSTALL_DIR=/opt # or wherever you want
 cd $INSTALL_DIR
-git clone https://github.com/fabiodblab/briefcli.git
+git clone https://github.com/fdb-git/briefcli.git
 # alternatively you can update with:
 git pull
 ```
@@ -96,7 +96,7 @@ function call {
 ```
 
 ### The help() function
-It is used by _help_ command to print user documentation. The CONF array is also availabe here.
+It is used by _help_ command to print user documentation. The CONF array is also available here.
 ```bash
 function help {
     echo 'Return a string with usage text'
