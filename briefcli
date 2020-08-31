@@ -149,6 +149,7 @@ if [ $# -gt 0 ]; then
             trap help EXIT
             source "$_HOME/commands/$CMD"   # Load pluggable command
             call  "$@"                      # and call it
+            _exit=$?
             trap - EXIT
         else
             help $CMD
@@ -158,3 +159,4 @@ else
     _usage "ERROR: A command is required"
     exit 1
 fi
+exit $_exit
