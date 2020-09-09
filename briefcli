@@ -1,27 +1,48 @@
-#!/bin/bash -p
+#!/bin/bash
 
 # Brief (Bash) CLI builder
 
+# Copyright 2020 Fabio Di Bernardini
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 declare -A CONF # Associative array with all config parameters
 
-# Compute _HOME
+# Compute SCRIPT_HOME
 _source="${BASH_SOURCE[0]}"
 while [ -h "$_source" ]; do # resolve $_source until the file is no longer a symlink
     DIR="$( cd -P "$( dirname "$_source" )" >/dev/null 2>&1 && pwd )"
     _source="$(readlink "$_source")"
     [[ $_source != /* ]] && _source="$DIR/$_source" # if $_source was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
-export _HOME="$( cd -P "$( dirname "$_source" )" >/dev/null 2>&1 && pwd )"
+export SCRIPT_HOME="$( cd -P "$( dirname "$_source" )" >/dev/null 2>&1 && pwd )"
 
 # The briefcli command name
-export BRIEFCLI=$0
+export BRIEFCLI=$(basename $0)
+
+# If CONF_PATH is not defined set default
+[ -z ${CONF_PATH+x} ] && CONF_PATH=$SCRIPT_HOME/config
+
+# If COMMANDS_PATH is not defined set default
+[ -z ${COMMANDS_PATH+x} ] && COMMANDS_PATH=$SCRIPT_HOME/commands
 
 # If no config file, copy the template
-[ -f "$_HOME/config" ] || cp "$_HOME/config.template" "$_HOME/config"
+[ -f "$CONF_PATH" ] || cp "$SCRIPT_HOME/config.template" "$CONF_PATH"
 
 # If no command directory, copy the template
-[ -d "$_HOME/commands" ] || cp -a "$_HOME/commands.template" "$_HOME/commands"
-
+[ -d "$COMMANDS_PATH" ] || cp -a "$SCRIPT_HOME/commands.template" "$COMMANDS_PATH"
+ 
 function _help_help { _usage 'Print information about the "help" command.' ; }
 function help {
     if [ $# -gt 0 ]; then
@@ -35,8 +56,8 @@ function help {
         if _contains "$(_builtin_commands)" $command; then
             _help_$command
         else # load command and execute its help function
-            if [ -f "$_HOME/commands/$command" ]; then
-                source "$_HOME/commands/$command"
+            if [ -f "$COMMANDS_PATH/$command" ]; then
+                source "$COMMANDS_PATH/$command"
                 usage # _usage "$(usage)"
             else
                 _usage "ERROR: $command command not found"
@@ -76,7 +97,7 @@ function _builtin_commands {
 }
 
 function _pluggable_commands {
-    ls $_HOME/commands | grep -v '^_'
+    ls "$COMMANDS_PATH" | grep -v '^_'
 }
 
 function _help_print-conf { _usage 'Print configuration values.' ; }
@@ -99,21 +120,20 @@ function _configfile_conditioning {
 function _make_conf {
     # Build the CONF associative array with the following override order:
     # - config file
-    # - environment variables (removing the initial string defaulting to "BC_") 
+    # - environment variables (removing the initial string defined in ENVPREFIX") 
     # - command line parameters
     # - standard input
 
     local line
-    export _CONF=$_HOME/config
 
     # Load key-value pairs from config file
     while IFS= read -r line; do
         local key=$(awk -F'=' '{ st = index($0,"=");print $1}' <<< $line)
         local value=$((awk -F: '{ st = index($0,"=");print substr($0,st+1)}' | xargs) <<< $line)
         CONF[$key]=$value
-    done <<< $(_configfile_conditioning $_CONF)
+    done <<< $(_configfile_conditioning $CONF_PATH)
 
-    # Load environment variables beginning with BC_
+    # Load environment variables beginning with value defined in ENVPREFIX
     while IFS= read -r line; do
         [ -n "$line" ] && CONF[${line%=*}]=${line#*=}
     done <<< $(env | grep "^${CONF[ENVPREFIX]}" | sed "s/^${CONF[ENVPREFIX]}//")
@@ -131,11 +151,10 @@ function _make_conf {
     fi
 }
 
-_make_conf "$@" # Build the CONF array
-
 if [ $# -gt 0 ]; then
     CMD=$1
     shift
+    _make_conf "$@" # Build the CONF array
 
     # Exit if command is a "private" function (beginning with _ )
     [[ "$CMD" =~ ^\s*_.* ]] && help $CMD && exit 1
@@ -145,9 +164,9 @@ if [ $# -gt 0 ]; then
         $CMD "$@" # execute command
         trap - EXIT
     else
-        if [ -f "$_HOME/commands/$CMD" ]; then
+        if [ -f "$COMMANDS_PATH/$CMD" ]; then
             trap help EXIT
-            source "$_HOME/commands/$CMD"   # Load pluggable command
+            source "$COMMANDS_PATH/$CMD"   # Load pluggable command
             call  "$@"                      # and call it
             _exit=$?
             trap - EXIT
