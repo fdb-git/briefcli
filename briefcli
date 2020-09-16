@@ -131,7 +131,7 @@ function _make_conf {
         local key=$(awk -F'=' '{ st = index($0,"=");print $1}' <<< $line)
         local value=$((awk -F: '{ st = index($0,"=");print substr($0,st+1)}' | xargs) <<< $line)
         CONF[$key]=$value
-    done <<< $(_configfile_conditioning $CONF_PATH)
+    done <<< "$(_configfile_conditioning $CONF_PATH)"
 
     # Load environment variables beginning with value defined in ENVPREFIX
     while IFS= read -r line; do
