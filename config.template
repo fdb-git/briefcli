@@ -10,16 +10,19 @@ USAGE="\
 Brief (Bash) CLI builder\n\
 \n\
 usage:\n\
-$_NAME COMMAND [param[=value]]\n\
+$_NAME COMMAND [param[=value]] [--]\n\
 \n\
 Parameters can be inserted in:\n\
  - config file\n\
- - environment variables (removing the initial "BCB_"):\n\
-      BCB_param='value' BCB_param2='value2' $_NAME print-conf\n\
+ - environment variables (removing the initial \"$ENVPREFIX\"):\n\
+      ${ENVPREFIX}param='value' ${ENVPREFIX}param2='value2' $_NAME print-conf\n\
  - command line parameters:\n\
       $_NAME param='value' param2='value2'\n\
  - standard input:\n\
-      echo -e 'param=value\\\nparam2=value2' | $_NAME print-conf"
+      echo -e 'param=value\\\nparam2=value2' | $_NAME print-conf
+
+The \"--\" marker stop processing command line arguments, all characters after
+that will be passed as arguments of the subcommand."
 
 # The user used in the login command
 user='admin'
