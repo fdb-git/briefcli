@@ -17,6 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+########################################################################
+
+# Cleanup all defined functions
+for f in $(declare -F | cut -d ' ' -f 3); do unset -f $f; done
+
 declare -A CONF # Associative array with all config parameters
 
 # Compute SCRIPT_HOME
