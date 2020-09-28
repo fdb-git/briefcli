@@ -1,5 +1,5 @@
 #!/bin/bash
-
+pippo
 # Brief (Bash) CLI builder
 
 # Copyright 2020 Fabio Di Bernardini
@@ -141,7 +141,7 @@ function _make_conf {
     # Add command line arguments
     CONF[REMAINING_ARGS]=$@
     for i in "$@" ; do
-        [[ $i =~ -- ]] && { shift; CONF[REMAINING_ARGS]=$@; break; } # stop processing command line arguments
+        [[ $i == '--' ]] && { shift; CONF[REMAINING_ARGS]=$@; break; } # stop processing command line arguments
         CONF[${i%=*}]=${i#*=}
         shift
     done
