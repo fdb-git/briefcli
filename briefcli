@@ -144,8 +144,11 @@ function _make_conf {
     done <<< $(env | grep "^${CONF[ENVPREFIX]}" | sed "s/^${CONF[ENVPREFIX]}//")
 
     # Add command line arguments
+    CONF[REMAINING_ARGS]=$@
     for i in "$@" ; do
+        [[ $i == '--' ]] && { shift; CONF[REMAINING_ARGS]=$@; break; } # stop processing command line arguments
         CONF[${i%=*}]=${i#*=}
+        shift
     done
 
     # Add key-value pairs from stdin
@@ -166,13 +169,13 @@ if [ $# -gt 0 ]; then
 
     if declare -F "$CMD" > /dev/null; then # If it is a local function name
         trap help EXIT
-        $CMD "$@" # execute command
+        $CMD ${CONF[REMAINING_ARGS]} # execute command
         trap - EXIT
     else
         if [ -f "$COMMANDS_PATH/$CMD" ]; then
             trap help EXIT
             source "$COMMANDS_PATH/$CMD"   # Load pluggable command
-            call  "$@"                      # and call it
+            call  ${CONF[REMAINING_ARGS]}  # and call it
             _exit=$?
             trap - EXIT
         else
@@ -183,4 +186,3 @@ else
     _usage "ERROR: A command is required"
     exit 1
 fi
-exit $_exit
