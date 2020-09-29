@@ -5,5 +5,5 @@ function usage {
 }
 
 function call {
-    host $($BRIEFCLI ip-public)
+    host $($SCRIPT_HOME/$BRIEFCLI ip-public)
 }

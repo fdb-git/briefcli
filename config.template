@@ -19,9 +19,9 @@ Parameters can be inserted in:\n\
  - command line parameters:\n\
       $_NAME param='value' param2='value2'\n\
  - standard input:\n\
-      echo -e 'param=value\\\nparam2=value2' | $_NAME print-conf
-
-The \"--\" marker stop processing command line arguments, all characters after
+      echo -e 'param=value\\\nparam2=value2' | $_NAME print-conf\n\
+\n\
+The \"--\" marker stop processing command line arguments, all characters after\n\
 that will be passed as arguments of the subcommand."
 
 # The user used in the login command
