@@ -2,7 +2,7 @@
 
 # Brief (Bash) CLI builder
 
-# Copyright 2020 Fabio Di Bernardini
+# Copyright 2021 Fabio Di Bernardini
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,8 +33,9 @@ while [ -h "$_source" ]; do # resolve $_source until the file is no longer a sym
 done
 export SCRIPT_HOME="$( cd -P "$( dirname "$_source" )" >/dev/null 2>&1 && pwd )"
 
-# The briefcli command name
-export BRIEFCLI=$(basename $0)
+# If not defined set the briefcli command name
+[ -z ${CONF_PATH+x} ] && export BRIEFCLI=$(basename $0)
+
 
 # If CONF_PATH is not defined set default
 [ -z ${CONF_PATH+x} ] && CONF_PATH=$SCRIPT_HOME/config
@@ -48,7 +49,7 @@ export BRIEFCLI=$(basename $0)
 # If no command directory, copy the template
 [ -d "$COMMANDS_PATH" ] || cp -a "$SCRIPT_HOME/commands.template" "$COMMANDS_PATH"
  
-function _help_help { _usage 'Print information about the "help" command.' ; }
+function _help_help { _usage "Print information about the \"help\" command.\n\nusage: $BRIEFCLI help COMMAND"; }
 function help {
     if [ $# -gt 0 ]; then
 
@@ -63,7 +64,7 @@ function help {
         else # load command and execute its help function
             if [ -f "$COMMANDS_PATH/$command" ]; then
                 source "$COMMANDS_PATH/$command"
-                usage # _usage "$(usage)"
+                _usage "$(usage)"
             else
                 _usage "ERROR: $command command not found"
             fi
@@ -77,13 +78,13 @@ function _usage {
 
     message=$1
 
-    # If message is not empty append a newline
-    [ -n "$message" ] && message="${message}"$'\n\n---\n'
+    if [ -n "$message" ]; then # print message
+        echo -e "${message}"
+    else
+       echo -e "${CONF[USAGE]}" # print default message
+       echo -e "\nAvailable commands are:\n$(echo -e $(_builtin_commands) $(_pluggable_commands))"
+    fi
 
-    echo -e "$message${CONF[USAGE]}
-
-Available commands are:
-    $(echo -e "$(_builtin_commands)\n$(_pluggable_commands)" | sort  | tr '\n' ' ')"
 }
 
 function _contains {
@@ -105,20 +106,27 @@ function _pluggable_commands {
     ls "$COMMANDS_PATH" | grep -v '^_'
 }
 
-function _help_print-conf { _usage 'Print configuration values.' ; }
+function _help_print-conf { _usage 'Print configuration values (available in $CONF[] and REMAINING_ARGS[] arrays).' ; }
 function print-conf {
-    # Print CONF key-values
     for i in "${!CONF[@]}"; do
         echo "CONF[$i]=${CONF[$i]}"
     done
+    for i in "${!REMAINING_ARGS[@]}"; do
+        echo "REMAINING_ARGS[$i]=${REMAINING_ARGS[$i]}"
+    done
+}
+
+function _help_print-env { _usage 'Print environment values.' ; }
+function print-env {
+    env
 }
 
 function _configfile_conditioning {
     # Convert multiline bash statements in single line, perform
     # parameter substitution, expansion, remove comments and
-    # escapes strings.
-    # The parameter is a bash file with only variable associations
-    # Don't use with other statements
+    # escapes strings. The parameter is a bash file with only
+    # variable associations, don't insert other statements or
+    # unexpected behaviors could occur.
     bash -x $1 2>&1 1>/dev/null | sed 's/^+ //'
 }
 
@@ -129,33 +137,37 @@ function _make_conf {
     # - command line parameters
     # - standard input
 
-    local line
+    local line key value
 
     # Load key-value pairs from config file
     while IFS= read -r line; do
-        local key=$(awk -F'=' '{ st = index($0,"=");print $1}' <<< $line)
-        local value=$((awk -F: '{ st = index($0,"=");print substr($0,st+1)}' | xargs) <<< $line)
-        CONF[$key]=$value
+        key=$(awk -F'=' '{ st = index($0,"=");print $1}' <<< "$line")
+        value=$((awk -F: '{ st = index($0,"=");print substr($0,st+1)}' | xargs) <<< "$line")
+        CONF["$key"]="$value"
     done <<< "$(_configfile_conditioning $CONF_PATH)"
 
     # Load environment variables beginning with value defined in ENVPREFIX
     while IFS= read -r line; do
         [ -n "$line" ] && CONF[${line%=*}]=${line#*=}
-    done <<< $(env | grep "^${CONF[ENVPREFIX]}" | sed "s/^${CONF[ENVPREFIX]}//")
+    done <<< "$(env | grep "^${CONF[ENVPREFIX]}" | sed "s/^${CONF[ENVPREFIX]}//")"
 
     # Add command line arguments
-    CONF[REMAINING_ARGS]=$@
     for i in "$@" ; do
-        [[ $i == '--' ]] && { shift; CONF[REMAINING_ARGS]=$@; break; } # stop processing command line arguments
+        if [[ $i == '--' ]]; then # stop processing command line arguments
+            shift
+            REMAINING_ARGS=("$@")
+            break
+        fi
         CONF[${i%=*}]=${i#*=}
         shift
     done
-
-    # Add key-value pairs from stdin
-    if test ! -t 0; then # check if stdin fd is open
-        while IFS= read -ru 0 line; do
-            CONF[${line%=*}]=${line#*=}
-        done
+    if [ -z ${CONF[--nostdin]+x} ]; then
+        # Add key-value pairs from stdin
+        if test ! -t 0; then # check if stdin fd is open
+            while IFS= read -ru 0 line; do
+                CONF[${line%=*}]=${line#*=}
+            done
+        fi
     fi
 }
 
@@ -169,13 +181,14 @@ if [ $# -gt 0 ]; then
 
     if declare -F "$CMD" > /dev/null; then # If it is a local function name
         trap help EXIT
-        $CMD ${CONF[REMAINING_ARGS]} # execute command
+        $CMD "$@" # execute command
+        _exit=$?
         trap - EXIT
     else
         if [ -f "$COMMANDS_PATH/$CMD" ]; then
             trap help EXIT
             source "$COMMANDS_PATH/$CMD"   # Load pluggable command
-            call  ${CONF[REMAINING_ARGS]}  # and call it
+            call "$@"  # and call it
             _exit=$?
             trap - EXIT
         else
@@ -186,3 +199,5 @@ else
     _usage "ERROR: A command is required"
     exit 1
 fi
+
+exit $_exit

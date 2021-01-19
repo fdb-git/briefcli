@@ -1,28 +1,33 @@
+#!/bin/bash
+
 # All key=value pairs in this file can be used in command
 # files using bash's associative array syntax: ${CONF[key]}
 
 # To define a parameter using env vars prepend this string to the param name
-# eg: BCB_param='value' BCB_param2='value2' briefcli print-conf
+# eg: BC_param='value' BC_--option briefcli print-conf
 ENVPREFIX='BC_'
 
-# A single/multi line string printed as usage text.
-USAGE="\
-Brief (Bash) CLI builder\n\
+# A single or multi line string printed as usage text.
+# In a multiline string each line must end with \n\ .
+USAGE="Brief (Bash) CLI builder\n\
 \n\
 usage:\n\
-$_NAME COMMAND [param[=value]] [--]\n\
+$BRIEFCLI COMMAND [--options] [param[=value]] [-- [args]]\n\
+\n\
+Options:\n\
+ --nostdin: avoid reading from standard input\n\
 \n\
 Parameters can be inserted in:\n\
  - config file\n\
  - environment variables (removing the initial \"$ENVPREFIX\"):\n\
-      ${ENVPREFIX}param='value' ${ENVPREFIX}param2='value2' $_NAME print-conf\n\
+      ${ENVPREFIX}param='value' ${ENVPREFIX}param2='value2' $BRIEFCLI print-conf\n\
  - command line parameters:\n\
-      $_NAME param='value' param2='value2'\n\
- - standard input:\n\
-      echo -e 'param=value\\\nparam2=value2' | $_NAME print-conf\n\
+      $BRIEFCLI param='value' param2='value2'\n\
+ - standard input (see --nostdin option):\n\
+      echo -e 'param=value\\\nparam2=value2' | $BRIEFCLI print-conf\n\
 \n\
 The \"--\" marker stop processing command line arguments, all characters after\n\
-that will be passed as arguments of the subcommand."
+that will be passed as an associative array named REMAINING_ARGS."
 
 # The user used in the login command
 user='admin'
@@ -38,8 +43,8 @@ endpoint='ifconfig.io'
 # Example command usable in call() function to
 # get data from web apps needing cookies.
 curl="curl --silent --insecure \
-        --cookie $WORKDIR/cookies.txt \
-        --cookie-jar $WORKDIR/cookies.txt"
+    --cookie $WORKDIR/cookies.txt \
+    --cookie-jar $WORKDIR/cookies.txt"
 
 # Example command usable in call() function to
 # render html page to text console.
