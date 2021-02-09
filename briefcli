@@ -34,8 +34,7 @@ done
 export SCRIPT_HOME="$( cd -P "$( dirname "$_source" )" >/dev/null 2>&1 && pwd )"
 
 # If not defined set the briefcli command name
-[ -z ${CONF_PATH+x} ] && export BRIEFCLI=$(basename $0)
-
+[ -z ${BRIEFCLI+x} ] && export BRIEFCLI=$(basename $0)
 
 # If CONF_PATH is not defined set default
 [ -z ${CONF_PATH+x} ] && CONF_PATH=$SCRIPT_HOME/config
